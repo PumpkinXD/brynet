@@ -49,7 +49,7 @@ static size_t getClientNum()
     return clients.size();
 }
 
-static void broadCastPacket(const TcpConnection::PacketPtr& packet)
+static void broadCastPacket(const std::shared_ptr<std::string>& packet)
 {
     auto packetLen = packet->size();
     RecvPacketNum++;
@@ -94,7 +94,10 @@ int main(int argc, char** argv)
                     });
                 });
 
-            session->setDataCallback([mainLoop](const char* buffer, size_t len) {
+            session->setDataCallback([mainLoop](brynet::base::BasePacketReader& reader) {
+                const char* buffer = reader.getBuffer();
+                size_t len = reader.getMaxPos();
+
                 const char* parseStr = buffer;
                 size_t totalProcLen = 0;
                 size_t leftLen = len;
@@ -109,7 +112,7 @@ int main(int argc, char** argv)
                         auto packet_len = rp.readUINT32();
                         if (leftLen >= packet_len && packet_len >= HEAD_LEN)
                         {
-                            auto packet = TcpConnection::makePacket(parseStr, packet_len);
+                            auto packet = std::make_shared<std::string>(parseStr, packet_len);
                             mainLoop->runAsyncFunctor([packet]() {
                                 broadCastPacket(packet);
                                 });
@@ -128,8 +131,9 @@ int main(int argc, char** argv)
                     }
                 }
 
-                return totalProcLen;
-                });
+                reader.addPos(totalProcLen);
+                reader.savePos();
+            });
         };
         service->addTcpConnection(std::move(socket),
             brynet::net::AddSocketOption::AddEnterCallback(enterCallback),

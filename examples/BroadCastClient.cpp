@@ -59,7 +59,10 @@ int main(int argc, char** argv)
                 dataSocket->send(sp->getData(), sp->getPos());
             }
 
-            dataSocket->setDataCallback([dataSocket](const char* buffer, size_t len) {
+            dataSocket->setDataCallback([dataSocket](brynet::base::BasePacketReader& reader) {
+                const char* buffer = reader.getBuffer();
+                size_t len = reader.getMaxPos();
+
                 const char* parseStr = buffer;
                 int totalProcLen = 0;
                 size_t leftLen = len;
@@ -102,7 +105,8 @@ int main(int argc, char** argv)
                     }
                 }
 
-                return totalProcLen;
+                reader.addPos(totalProcLen);
+                reader.savePos();
             });
 
             dataSocket->setDisConnectCallback([](const TcpConnection::Ptr& dataSocket) {

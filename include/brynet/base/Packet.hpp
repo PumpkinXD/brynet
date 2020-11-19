@@ -258,6 +258,26 @@ namespace brynet { namespace base {
 
         virtual ~BasePacketReader() = default;
 
+        void    savePos()
+        {
+            mSavedPos = mPos;
+        }
+
+        size_t  savedPos() const
+        {
+            return mSavedPos;
+        }
+
+        void    useBigEndian()
+        {
+            mBigEndian = true;
+        }
+
+        void    useLittleEndian()
+        {
+            mBigEndian = false;
+        }
+
         size_t          getLeft() const
         {
             if (mPos > mMaxLen)
@@ -374,10 +394,11 @@ namespace brynet { namespace base {
         }
 
     protected:
-        const bool      mBigEndian;
+        bool            mBigEndian;
         const size_t    mMaxLen;
         const char*     mBuffer;
         size_t          mPos;
+        size_t          mSavedPos;
     };
 
     template<size_t SIZE>
