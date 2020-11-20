@@ -715,7 +715,7 @@ namespace brynet { namespace net {
             static  const   int SENDBUF_SIZE = 1024 * 32;
             if (threadLocalSendBuf == nullptr)
             {
-                threadLocalSendBuf = malloc(SENDBUF_SIZE);
+                threadLocalSendBuf = static_cast<char*>(malloc(SENDBUF_SIZE));
             }
 
 #ifdef BRYNET_USE_OPENSSL
@@ -734,7 +734,7 @@ namespace brynet { namespace net {
                 for (auto it = mSendList.begin(); it != mSendList.end(); ++it)
                 {
                     auto& packet = *it;
-                    const void* packetLeftBuf = static_cast<const void*>(static_cast<const char*>(packet.data->data()) + packet.data->size() - packet.left);
+                    auto packetLeftBuf = static_cast<char*>(packet.data->data()) + packet.data->size() - packet.left;
                     const auto packetLeftLen = packet.left;
 
                     if ((wait_send_size + packetLeftLen) > SENDBUF_SIZE)
@@ -747,7 +747,7 @@ namespace brynet { namespace net {
                         break;
                     }
 
-                    memcpy(sendptr + wait_send_size, packetLeftBuf, packetLeftLen);
+                    memcpy(static_cast<void*>(sendptr + wait_send_size), static_cast<void*>(packetLeftBuf), packetLeftLen);
                     wait_send_size += packetLeftLen;
                 }
 
