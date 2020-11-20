@@ -253,20 +253,11 @@ namespace brynet { namespace base {
             mMaxLen(len)
         {
             mPos = 0;
+            mSavedPos = 0;
             mBuffer = buffer;
         }
 
         virtual ~BasePacketReader() = default;
-
-        void    savePos()
-        {
-            mSavedPos = mPos;
-        }
-
-        size_t  savedPos() const
-        {
-            return mSavedPos;
-        }
 
         void    useBigEndian()
         {
@@ -278,6 +269,16 @@ namespace brynet { namespace base {
             mBigEndian = false;
         }
 
+        void    savePos()
+        {
+            mSavedPos = mPos;
+        }
+
+        size_t  savedPos() const
+        {
+            return mSavedPos;
+        }
+
         size_t          getLeft() const
         {
             if (mPos > mMaxLen)
@@ -285,6 +286,15 @@ namespace brynet { namespace base {
                 throw std::out_of_range("current pos is greater than max len");
             }
             return mMaxLen - mPos;
+        }
+
+        bool    enohth(size_t len) const
+        {
+            if (mPos > mMaxLen)
+            {
+                return false;
+            }
+            return (mMaxLen - mPos) >= len;
         }
 
         const char*     getBuffer() const
