@@ -171,7 +171,7 @@ namespace brynet { namespace net {
 
                 const void* data() override
                 {
-                    return (const void*)mMsg->data();
+                    return static_cast<const void*>(mMsg->data());
                 }
 
                 size_t  size() override
@@ -734,7 +734,7 @@ namespace brynet { namespace net {
                 for (auto it = mSendList.begin(); it != mSendList.end(); ++it)
                 {
                     auto& packet = *it;
-                    auto packetLeftBuf = static_cast<char*>(packet.data->data()) + packet.data->size() - packet.left;
+                    auto packetLeftBuf = reinterpret_cast<char*>(packet.data->data()) + packet.data->size() - packet.left;
                     const auto packetLeftLen = packet.left;
 
                     if ((wait_send_size + packetLeftLen) > SENDBUF_SIZE)
