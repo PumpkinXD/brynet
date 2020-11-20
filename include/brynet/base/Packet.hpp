@@ -16,7 +16,7 @@ namespace brynet { namespace base {
     public:
         BasePacketWriter(char* buffer,
             size_t len,
-            bool useBigEndian = true,
+            bool useBigEndian = false,
             bool isAutoMalloc = false)
             :
             mIsAutoMalloc(isAutoMalloc),
@@ -248,7 +248,7 @@ namespace brynet { namespace base {
     public:
         BasePacketReader(const char* buffer,
             size_t len,
-            bool useBigEndian = true) :
+            bool useBigEndian = false) :
             mBigEndian(useBigEndian),
             mMaxLen(len)
         {
@@ -288,7 +288,7 @@ namespace brynet { namespace base {
             return mMaxLen - mPos;
         }
 
-        bool    enohth(size_t len) const
+        bool    enough(size_t len) const
         {
             if (mPos > mMaxLen)
             {
@@ -302,6 +302,11 @@ namespace brynet { namespace base {
             return mBuffer;
         }
 
+        const char*     currentBuffer() const
+        {
+            return mBuffer+mPos;
+        }
+
         void            skipAll()
         {
             mPos = mMaxLen;
@@ -312,7 +317,7 @@ namespace brynet { namespace base {
             return mPos;
         }
 
-        size_t          getMaxPos() const
+        size_t          size() const
         {
             return mMaxLen;
         }
@@ -390,7 +395,7 @@ namespace brynet { namespace base {
         void            read(T& value)
         {
             static_assert(std::is_same<T, typename std::remove_pointer<T>::type>::value,
-                "T must a nomal type");
+                "T must a normal type");
             static_assert(std::is_pod<T>::value,
                 "T must a pod type");
 
@@ -415,7 +420,7 @@ namespace brynet { namespace base {
     class AutoMallocPacket : public BasePacketWriter
     {
     public:
-        explicit AutoMallocPacket(bool useBigEndian = true,
+        explicit AutoMallocPacket(bool useBigEndian = false,
             bool isAutoMalloc = false)
             :
             BasePacketWriter(mData, SIZE, useBigEndian, isAutoMalloc)

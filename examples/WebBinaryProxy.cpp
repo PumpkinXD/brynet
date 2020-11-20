@@ -66,7 +66,7 @@ int main(int argc, char **argv)
 
                         backendSession->setDataCallback([=](brynet::base::BasePacketReader& reader) {
                                 /* receive data from backend server, then send to http client */
-                                session->send(reader.getBuffer(), reader.getMaxPos());
+                                session->send(reader.getBuffer(), reader.size());
                                 reader.skipAll();
                                 reader.savePos();
                             });
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 
                 session->setDataCallback([=](brynet::base::BasePacketReader& reader) {
                     const char* buffer = reader.getBuffer();
-                    size_t size = reader.getMaxPos();
+                    size_t size = reader.size();
 
                     TcpConnection::Ptr backendSession = *shareBackendSession;
                     if (backendSession == nullptr)

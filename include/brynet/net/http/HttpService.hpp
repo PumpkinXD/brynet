@@ -202,14 +202,14 @@ namespace brynet { namespace net { namespace http {
                     if (httpParser->isWebSocket())
                     {
                         retlen = HttpService::ProcessWebSocket(reader.getBuffer(),
-                            reader.getMaxPos(),
+                                                               reader.size(),
                             httpParser, 
                             httpSession);
                     }
                     else
                     {
                         retlen = HttpService::ProcessHttp(reader.getBuffer(),
-                            reader.getMaxPos(),
+                                                          reader.size(),
                             httpParser, 
                             httpSession);
                     }

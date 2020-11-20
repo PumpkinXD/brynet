@@ -36,15 +36,15 @@ extern "C" {
 
 namespace brynet { namespace net {
 
-    class ISendableMsg
+    class SendableMsg
     {
     public:
-        using Ptr = std::shared_ptr<ISendableMsg>;
+        using Ptr = std::shared_ptr<SendableMsg>;
 
-        virtual ~ISendableMsg() = default;
+        virtual ~SendableMsg() = default;
 
-        virtual const void* data() = 0;
-        virtual size_t      size() = 0;
+        virtual const void *    data() = 0;
+        virtual size_t          size() = 0;
     };
 
     class TcpConnection :   public Channel, 
@@ -128,7 +128,7 @@ namespace brynet { namespace net {
 
         //TODO::如果所属EventLoop已经没有工作，则可能导致内存无限大，因为所投递的请求都没有得到处理
         void                            send(
-            const ISendableMsg::Ptr& msg,
+            const SendableMsg::Ptr& msg,
             PacketSendedCallback&& callback = nullptr
         )
         {
@@ -157,7 +157,7 @@ namespace brynet { namespace net {
             const std::shared_ptr<std::string>& packet,
             PacketSendedCallback&& callback = nullptr)
         {
-            class StringSendMsg : public ISendableMsg
+            class StringSendMsg : public SendableMsg
             {
             public:
                 explicit StringSendMsg(std::shared_ptr<std::string>&&  msg)
@@ -734,7 +734,7 @@ namespace brynet { namespace net {
                 for (auto it = mSendList.begin(); it != mSendList.end(); ++it)
                 {
                     auto& packet = *it;
-                    auto packetLeftBuf = reinterpret_cast<char*>(packet.data->data()) + packet.data->size() - packet.left;
+                    auto packetLeftBuf = (char*)(packet.data->data()) + packet.data->size() - packet.left;
                     const auto packetLeftLen = packet.left;
 
                     if ((wait_send_size + packetLeftLen) > SENDBUF_SIZE)
@@ -844,7 +844,7 @@ namespace brynet { namespace net {
                 size_t ready_send_len = 0;
                 for (const auto& p : mSendList)
                 {
-                    iov[num].iov_base = static_cast<const void*>(static_cast<const char*>(p.data->data()) + (p.data->size() - p.left);
+                    iov[num].iov_base = (void*)(static_cast<const char*>(p.data->data()) + p.data->size() - p.left);
                     iov[num].iov_len = p.left;
                     ready_send_len += p.left;
 
@@ -1121,8 +1121,8 @@ namespace brynet { namespace net {
                                                              buffer_getreadvalidcount(mRecvBuffer.get()), false);
                 mDataCallback(reader);
                 const auto proclen = reader.savedPos();
-                assert(proclen <= reader.getMaxPos());
-                if (proclen <= reader.getMaxPos())
+                assert(proclen <= reader.size());
+                if (proclen <= reader.size())
                 {
                     buffer_addreadpos(mRecvBuffer.get(), proclen);
                 }
@@ -1160,7 +1160,7 @@ namespace brynet { namespace net {
 
         struct PendingPacket
         {
-            ISendableMsg::Ptr data;
+            SendableMsg::Ptr data;
             size_t      left;
             PacketSendedCallback  mCompleteCallback;
         };

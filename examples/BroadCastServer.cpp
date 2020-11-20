@@ -95,44 +95,29 @@ int main(int argc, char** argv)
                 });
 
             session->setDataCallback([mainLoop](brynet::base::BasePacketReader& reader) {
-                const char* buffer = reader.getBuffer();
-                size_t len = reader.getMaxPos();
-
-                const char* parseStr = buffer;
-                size_t totalProcLen = 0;
-                size_t leftLen = len;
-
                 while (true)
                 {
-                    bool flag = false;
-                    auto HEAD_LEN = sizeof(uint32_t) + sizeof(uint16_t);
-                    if (leftLen >= HEAD_LEN)
-                    {
-                        BasePacketReader rp(parseStr, leftLen);
-                        auto packet_len = rp.readUINT32();
-                        if (leftLen >= packet_len && packet_len >= HEAD_LEN)
-                        {
-                            auto packet = std::make_shared<std::string>(parseStr, packet_len);
-                            mainLoop->runAsyncFunctor([packet]() {
-                                broadCastPacket(packet);
-                                });
-
-                            totalProcLen += packet_len;
-                            parseStr += packet_len;
-                            leftLen -= packet_len;
-                            flag = true;
-                        }
-                        rp.skipAll();
-                    }
-
-                    if (!flag)
+                    auto buffer = reader.currentBuffer();
+                    if (!reader.enough(sizeof(uint32_t)))
                     {
                         break;
                     }
-                }
 
-                reader.addPos(totalProcLen);
-                reader.savePos();
+                    auto packetLen = reader.readUINT32();
+                    if (!reader.enough(packetLen-sizeof(uint32_t)))
+                    {
+                        break;
+                    }
+
+                    auto packet = std::make_shared<std::string>(buffer, packetLen);
+                    mainLoop->runAsyncFunctor([packet]()
+                    {
+                        broadCastPacket(packet);
+                    });
+
+                    reader.addPos(packetLen-sizeof(uint32_t));
+                    reader.savePos();
+                }
             });
         };
         service->addTcpConnection(std::move(socket),

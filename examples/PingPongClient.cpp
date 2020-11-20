@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 
     auto enterCallback = [tmp](const TcpConnection::Ptr& session) {
         session->setDataCallback([session](brynet::base::BasePacketReader& reader) {
-                session->send(reader.getBuffer(), reader.getMaxPos());
+                session->send(reader.getBuffer(), reader.size());
                 reader.skipAll();
                 reader.savePos();
             });
