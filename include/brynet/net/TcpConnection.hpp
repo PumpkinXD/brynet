@@ -708,7 +708,7 @@ namespace brynet { namespace net {
         void                            normalFlush()
         {
 #ifdef BRYNET_PLATFORM_WINDOWS
-            static __declspec(thread) void* threadLocalSendBuf = nullptr;
+            static __declspec(thread) char* threadLocalSendBuf = nullptr;
 #elif defined BRYNET_PLATFORM_LINUX || defined BRYNET_PLATFORM_DARWIN
             static __thread char* threadLocalSendBuf = nullptr;
 #endif
@@ -728,13 +728,13 @@ namespace brynet { namespace net {
 
             while (!mSendList.empty() && mCanWrite)
             {
-                void* sendptr = threadLocalSendBuf;
+                auto sendptr = threadLocalSendBuf;
                 size_t     wait_send_size = 0;
 
                 for (auto it = mSendList.begin(); it != mSendList.end(); ++it)
                 {
                     auto& packet = *it;
-                    auto packetLeftBuf = packet.data->data() + (packet.data->size() - packet.left);
+                    const void* packetLeftBuf = static_cast<const void*>(static_cast<const char*>(packet.data->data()) + packet.data->size() - packet.left);
                     const auto packetLeftLen = packet.left;
 
                     if ((wait_send_size + packetLeftLen) > SENDBUF_SIZE)
@@ -844,7 +844,7 @@ namespace brynet { namespace net {
                 size_t ready_send_len = 0;
                 for (const auto& p : mSendList)
                 {
-                    iov[num].iov_base = (p.data->data() + (p.data->size() - p.left);
+                    iov[num].iov_base = static_cast<const void*>(static_cast<const char*>(p.data->data()) + (p.data->size() - p.left);
                     iov[num].iov_len = p.left;
                     ready_send_len += p.left;
 
