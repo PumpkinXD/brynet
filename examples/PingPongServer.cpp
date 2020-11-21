@@ -29,8 +29,8 @@ int main(int argc, char **argv)
         total_client_num++;
 
         session->setDataCallback([session](brynet::base::BasePacketReader& reader) {
-                session->send(reader.getBuffer(), reader.getMaxPos());
-                TotalRecvSize += reader.getMaxPos();
+                session->send(reader.getBuffer(), reader.size());
+                TotalRecvSize += reader.size();
                 total_packet_num++;
                 reader.skipAll();
                 reader.savePos();
